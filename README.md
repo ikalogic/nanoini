@@ -1,5 +1,5 @@
 # nanoini
-This lib is meant to be an *extremly* minimalistic, lightweight and efficient tool to parse INI formated string on the fly, with absolute minimum memory footprint: It only needs just enough memory to store a few pointers the the characters strings for a single key-value pair.
+This plain C library is meant to be an *extremly* minimalistic, lightweight and efficient tool to parse INI formated string on the fly, with absolute minimum memory footprint: It only needs just enough memory to store a few pointers the the characters strings for a single key-value pair.
 Most importantnly: the memory usage is not related to maximum line size, unlike most (all?) libraries available. 
 
 nanoini does not relies on actual files, nor was it meant to work with files; it's solely adapted to MCUs with limited memory. nanoini's ability to parse a stream of INI formated string *on-the-fly without buffering a full line* prior to parsing it, is what makes it different.
@@ -31,4 +31,31 @@ In other words, quotation marks are not understood by the parser and are treated
  
  ## Usage examples
  
- TODO
+ ```c
+ #include "nanoini.h"
+ 
+ nanoini_result_t nret;
+ nanoini_parser_t np;
+ int i,len;
+ 
+ nanoini_init(&np);
+ 
+ for (i = 0; i < sizeof(test_data); i+=50)
+ {
+   len = sizeof(test_data)-i;
+   if (len > 50)
+   {
+       len = 50;
+   }
+   nanoini_feed_bloc(&np,&test_data[i],len);
+   nret.more = true;
+   while(nret.more)
+   {
+       nret = nanoini_parse_bloc(&np);
+       if (nret.valid)
+       {
+           printf("%s=%s\r\n", nret.key, nret.val);
+       }
+   }
+ }
+ ```
