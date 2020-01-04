@@ -34,28 +34,34 @@ In other words, quotation marks are not understood by the parser and are treated
  ```c
  #include "nanoini.h"
  
- nanoini_result_t nret;
- nanoini_parser_t np;
- int i,len;
- 
- nanoini_init(&np);
- 
- for (i = 0; i < sizeof(test_data); i+=50)
+ int main () 
  {
-   len = sizeof(test_data)-i;
-   if (len > 50)
-   {
-       len = 50;
-   }
-   nanoini_feed_bloc(&np,&test_data[i],len);
-   nret.more = true;
-   while(nret.more)
-   {
-       nret = nanoini_parse_bloc(&np);
-       if (nret.valid)
-       {
-           printf("%s=%s\r\n", nret.key, nret.val);
-       }
-   }
+ 
+  nanoini_result_t nret;
+  nanoini_parser_t np;
+  int i,len;
+
+  nanoini_init(&np);
+
+  for (i = 0; i < sizeof(test_data); i+=50)
+  {
+    len = sizeof(test_data)-i;
+    if (len > 50)
+    {
+        len = 50;
+    }
+    nanoini_feed_bloc(&np,&test_data[i],len);
+    nret.more = true;
+    while(nret.more)
+    {
+        nret = nanoini_parse_bloc(&np);
+        if (nret.valid)
+        {
+            printf("%s=%s\r\n", nret.key, nret.val);
+        }
+    }
+  }
+  
+  return 0;
  }
  ```
