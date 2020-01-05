@@ -1,7 +1,5 @@
 /*
  * Copyright (C) S.A.S. IKALOGIC - All Rights Reserved
- * Unauthorized copying of this file, via any medium is strictly prohibited
- * Proprietary and confidential
  * Written by Ibrahim KAMAL <i.kamal@ikalogic.com>, May 2019
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
