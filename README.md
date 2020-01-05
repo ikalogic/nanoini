@@ -49,7 +49,18 @@ typedef struct
     bool more;  //function still needs to be called again.
 }nanoini_result_t;
 ```
-the function `nanoini_parse_bloc` needs to be called repeatedly as long as the returned structure has `more == true`. Also, if the returned structure has the member `valid == true`, it means a new valid key/value pair are available in the structure members `key[]` and  `val[]`.
+The function `nanoini_parse_bloc` needs to be called repeatedly as long as the returned structure has `more == true`. Also, if the returned structure has the member `valid == true`, it means a new valid key/value pair are available in the structure members `key[]` and  `val[]`.
+
+If `key_val_overflow` is true, it means that at some point, either the key or the value or both were too large to fit in the corresponding buffers.
+
+In that case, you may either increase those defines:
+```c
+#define NANOINI_MAX_KEY_LEN 50 
+#define NANOINI_MAX_VAL_LEN 50 
+```
+Or you may change the structure of your INI data.
+
+
  
  ## Usage examples
  
