@@ -29,6 +29,28 @@ In other words, quotation marks are not understood by the parser and are treated
  * Spaces in keys or values are simply ignored
  * Sections are not supported (simply ignored)
  
+ ## API
+`void nanoini_init(nanoini_parser_t *p);`
+The init function need to be called before using the other functions. It will simply reset some working variables in the nanoini_parser_t structure. `p` must be allocated.
+
+`void nanoini_feed_bloc(nanoini_parser_t *p, char* data, size_t len);`
+As the name implies, use this function to feed a bloc of string to the parser. This is perfectly adapted to FreeRTOS StreamBuffers.
+
+`nanoini_result_t nanoini_parse_bloc(nanoini_parser_t *p);`
+This function actually does the job of parsing the bloc that was fed using the function above. it a returns this structure:
+```c
+typedef struct
+{
+    char key[NANOINI_MAX_KEY_LEN];
+    char val[NANOINI_MAX_VAL_LEN];
+    int idx; //Index for both key and val
+    bool key_val_overflow;
+    bool valid;
+    bool more;  //function still needs to be called again.
+}nanoini_result_t;
+```
+the function `nanoini_parse_bloc` needs to be called repeatedly as long as the returned structure has `more == true`. Also, if the returned structure has the member `valid == true`, it means a new valid key/value pair are available in the structure members `key[]` and  `val[]`.
+ 
  ## Usage examples
  
  ```c
