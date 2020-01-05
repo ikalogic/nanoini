@@ -5,7 +5,7 @@ Most importantnly: the memory usage is not related to maximum line size, unlike 
 nanoini does not relies on actual files, nor was it meant to work with files; it's solely adapted to MCUs with limited memory. nanoini's ability to parse a stream of INI formated string *on-the-fly without buffering a full line* prior to parsing it, is what makes it different.
 
 ## Features:
-- Parses chunks of an ini file, whatever the chunk size, without impact on memory usage.
+- Parses chunks of an ini formatted string, whatever the chunk size, without impact on memory usage.
 - Only needs to allocate enough memory for the key and the value strings
 - Gracefully handles a key and/or value that does not fit in allocated space
 - Doesn't need to allocate memory for a full line
