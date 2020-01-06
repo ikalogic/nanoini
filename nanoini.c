@@ -41,7 +41,7 @@ void nanoini_init(nanoini_parser_t *p, ini_handler handler, void* user_data)
     p->s = NANOINI_PARSER_GET_KEY;
 }
 
-nanoini_result_t nanoini_parse_bloc(nanoini_parser_t *p,char* data, size_t len)
+void nanoini_parse_bloc(nanoini_parser_t *p,char* data, size_t len)
 {
     char c;
     p->data_bloc_ptr = data;
@@ -100,8 +100,6 @@ nanoini_result_t nanoini_parse_bloc(nanoini_parser_t *p,char* data, size_t len)
         }
         p->data_bloc_ptr++;
     }
-
-    return p->result;
 }
 
 void nanoini_reset_result(nanoini_parser_t *p)

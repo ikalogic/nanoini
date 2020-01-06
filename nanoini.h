@@ -84,6 +84,6 @@ typedef int (*ini_handler)(void* user,const char* key, const char* value, bool o
  * @param p
  */
 void nanoini_init(nanoini_parser_t *p, ini_handler handler, void *user_data);
-nanoini_result_t nanoini_parse_bloc(nanoini_parser_t *p,char* data, size_t len);
+void nanoini_parse_bloc(nanoini_parser_t *p,char* data, size_t len);
 
 #endif /* NANOINI_H_ */
