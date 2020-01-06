@@ -29,7 +29,7 @@
 #include "nanoini.h"
 
 static ini_handler hdlr;
-static void* usr;
+static void* usr; //data container for convinience
 
 void nanoini_reset_result(nanoini_parser_t *p);
 
