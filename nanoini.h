@@ -1,5 +1,7 @@
 /*
  * Copyright (C) S.A.S. IKALOGIC - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
  * Written by Ibrahim KAMAL <i.kamal@ikalogic.com>, May 2019
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -59,8 +61,6 @@ typedef struct
     char val[NANOINI_MAX_VAL_LEN];
     int idx; //Index for both key and val
     bool key_val_overflow;
-    bool valid;
-    bool more;  //function still needs to be called again.
 }nanoini_result_t;
 
 typedef enum
@@ -78,12 +78,12 @@ typedef struct
     nanoini_state_t s;
 }nanoini_parser_t;
 
+typedef int (*ini_handler)(void* user,const char* key, const char* value, bool ovf);
 /**
  * @brief nanoini_init need to be called before using the library
  * @param p
  */
-void nanoini_init(nanoini_parser_t *p);
-void nanoini_feed_bloc(nanoini_parser_t *p, char* data, size_t len);
-nanoini_result_t nanoini_parse_bloc(nanoini_parser_t *p);
+void nanoini_init(nanoini_parser_t *p, ini_handler handler, void *user_data);
+nanoini_result_t nanoini_parse_bloc(nanoini_parser_t *p,char* data, size_t len);
 
 #endif /* NANOINI_H_ */

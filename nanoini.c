@@ -1,5 +1,7 @@
 /*
  * Copyright (C) S.A.S. IKALOGIC - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
  * Written by Ibrahim KAMAL <i.kamal@ikalogic.com>, May 2019
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -26,26 +28,25 @@
 #include "stdint.h"
 #include "nanoini.h"
 
+static ini_handler hdlr;
+static void* usr;
+
 void nanoini_reset_result(nanoini_parser_t *p);
 
-void nanoini_init(nanoini_parser_t *p)
+void nanoini_init(nanoini_parser_t *p, ini_handler handler, void* user_data)
 {
+    hdlr = handler;
+    usr = user_data;
     nanoini_reset_result(p);
+    p->s = NANOINI_PARSER_GET_KEY;
 }
 
-void nanoini_feed_bloc(nanoini_parser_t *p,char* data, size_t len)
+nanoini_result_t nanoini_parse_bloc(nanoini_parser_t *p,char* data, size_t len)
 {
-    p->s = NANOINI_PARSER_GET_KEY;
+    char c;
     p->data_bloc_ptr = data;
     p->data_bloc_end = data+len;
-}
-
-nanoini_result_t nanoini_parse_bloc(nanoini_parser_t *p)
-{
-    bool line_done = false;
-    p->result.valid = false;
-    char c;
-    while((p->data_bloc_ptr < p->data_bloc_end) && (line_done == false))
+    while(p->data_bloc_ptr < p->data_bloc_end)
     {
         c = *(p->data_bloc_ptr);
         switch (p->s)
@@ -60,7 +61,7 @@ nanoini_result_t nanoini_parse_bloc(nanoini_parser_t *p)
                 nanoini_reset_result(p);
                 //Skip those characters, simply.
             }
-            else if ((c == NANOINI_DELIMITER))
+            else if (c == NANOINI_DELIMITER)
             {
                 p->s = NANOINI_PARSER_GET_VAL;
                 p->result.idx = 0;
@@ -77,8 +78,7 @@ nanoini_result_t nanoini_parse_bloc(nanoini_parser_t *p)
         case NANOINI_PARSER_GET_VAL:
             if  ((c == NANOINI_COMMENT)||(c == '\r')||(c == '\n'))
             {
-                line_done = true;
-                p->result.valid = true;
+                hdlr(usr,p->result.key,p->result.val,p->result.key_val_overflow);
                 p->s = NANOINI_PARSER_WAIT_NEW_LINE;
             }
             else if (p->result.idx == NANOINI_MAX_VAL_LEN)
@@ -96,20 +96,9 @@ nanoini_result_t nanoini_parse_bloc(nanoini_parser_t *p)
                 nanoini_reset_result(p);
                 p->s = NANOINI_PARSER_GET_KEY;
             }
-            break;    
-        default:
             break;
         }
         p->data_bloc_ptr++;
-    }
-
-    if (p->data_bloc_ptr == p->data_bloc_end)
-    {
-        p->result.more = false;
-    }
-    else
-    {
-        p->result.more = true;
     }
 
     return p->result;
