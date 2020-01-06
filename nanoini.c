@@ -80,6 +80,7 @@ void nanoini_parse_bloc(nanoini_parser_t *p,char* data, size_t len)
             {
                 hdlr(usr,p->result.key,p->result.val,p->result.key_val_overflow);
                 p->s = NANOINI_PARSER_WAIT_NEW_LINE;
+                p->data_bloc_ptr--; //Rewind 1 step, to detect newline.
             }
             else if (p->result.idx == NANOINI_MAX_VAL_LEN)
             {

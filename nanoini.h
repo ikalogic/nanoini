@@ -78,7 +78,7 @@ typedef struct
     nanoini_state_t s;
 }nanoini_parser_t;
 
-typedef int (*ini_handler)(void* user,const char* key, const char* value, bool ovf);
+typedef void (*ini_handler)(void* user,const char* key, const char* value, bool ovf);
 /**
  * @brief nanoini_init need to be called before using the library
  * @param p
