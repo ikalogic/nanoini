@@ -11,7 +11,7 @@ nanoini does not relies on actual files, nor was it meant to work with files; it
 - Doesn't need to allocate memory for a full line
 - Works with lines ending with '\n', '\r' or any comnination of both.
 - INI Comments are ignored without any impact on memory usage, regardless of its size
-- Only 3 functions API.
+- Only 3 functions API (including the callback function).
 
  ## known (and wanted) limitations:
  nanoini is limited by design. It may evolve a bit in the future to implement more standard features like sections.
@@ -28,73 +28,99 @@ In other words, quotation marks are not understood by the parser and are treated
  ### Other limitations
  * Spaces in keys or values are simply ignored
  * Sections are not supported (simply ignored)
+ * There *must* be a new line after the last key/value pair.
  
- ## API
-`void nanoini_init(nanoini_parser_t *p);`
-The init function need to be called before using the other functions. It will simply reset some working variables in the nanoini_parser_t structure. `p` must be allocated.
+ ## API Usage
 
-`void nanoini_feed_bloc(nanoini_parser_t *p, char* data, size_t len);`
-As the name implies, use this function to feed a bloc of string to the parser. This is perfectly adapted to FreeRTOS StreamBuffers.
+Implement this callback in your code:
 
-`nanoini_result_t nanoini_parse_bloc(nanoini_parser_t *p);`
-This function actually does the job of parsing the bloc that was fed using the function above. it a returns this structure:
 ```c
-typedef struct
-{
-    char key[NANOINI_MAX_KEY_LEN];
-    char val[NANOINI_MAX_VAL_LEN];
-    int idx; //Index for both key and val
-    bool key_val_overflow;
-    bool valid;
-    bool more;  //function still needs to be called again.
-}nanoini_result_t;
+static void nanoini_handler(void* user,const char* key, const char* value, bool ovf);
 ```
-The function `nanoini_parse_bloc` needs to be called repeatedly as long as the returned structure has `more == true`. Also, if the returned structure has the member `valid == true`, it means a new valid key/value pair are available in the structure members `key[]` and  `val[]`.
 
-If `key_val_overflow` is true, it means that at some point, either the key or the value or both were too large to fit in the corresponding buffers.
+This will be called for every valid key/value par that is detected in the parsed string. `ovf` will be true whenever a key or a value cannot fit in the maximum length defined by:
 
-In that case, you may either increase those defines:
 ```c
 #define NANOINI_MAX_KEY_LEN 50 
 #define NANOINI_MAX_VAL_LEN 50 
 ```
-Or you may change the structure of your INI data.
+`user` is simply a pointer to your own data container.
 
+Then, simply Call `nanoini_init(nanoini_parser_t *p, ini_handler handler, void *user_data)` before parsing a string.
 
+And Call `nanoini_parse_bloc(nanoini_parser_t *p,char* data, size_t len)` for each bloc of string to be parsed.
  
  ## Usage examples
  
+ In the example below, we read the content from a file (although that's not the purpose of this library), and we cut it in 50 bytes blocs, to mimic how FreeRTOS streambuffers may present data (or any other data streaming system).
+
  ```c
- #include "nanoini.h"
- 
- int main () 
- {
- 
-  nanoini_result_t nret;
-  nanoini_parser_t np;
-  int i,len;
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
-  nanoini_init(&np);
+#include "../../nanoini.h"
 
-  for (i = 0; i < sizeof(test_data); i+=50)
-  {
-    len = sizeof(test_data)-i;
-    if (len > 50)
+#define BLOC_LEN    50
+
+typedef struct
+{
+    uint8_t     key_a;
+    bool        key_b;
+    int32_t    key_c;
+}my_cfg_t;
+
+static char data[BLOC_LEN];
+
+static void nanoini_handler(void* user,const char* key, const char* value, bool ovf)
+{
+    my_cfg_t* cfg = user;
+    printf("%s=%s%s\n",key,value,ovf?"Warning, overflow occured!":"");
+    if (strcmp(key,"KEY_A") == 0)
     {
-        len = 50;
+        cfg->key_a = (uint8_t)strtol(value,NULL,0);
     }
-    nanoini_feed_bloc(&np,&test_data[i],len);
-    nret.more = true;
-    while(nret.more)
+    else if (strcmp(key,"KEY_B") == 0)
     {
-        nret = nanoini_parse_bloc(&np);
-        if (nret.valid)
-        {
-            printf("%s=%s\r\n", nret.key, nret.val);
-        }
+        cfg->key_b = strtol(value,NULL,0);
     }
-  }
-  
-  return 0;
- }
+    else if (strcmp(key,"KEY_C") == 0)
+    {
+        cfg->key_c = (int32_t)strtol(value,NULL,0);
+    }
+}
+
+int main()
+{
+    nanoini_parser_t nano_prs;
+    FILE * pFile;
+    my_cfg_t cfg;
+    int c; // note: int, not char, required to handle EOF
+    int i = 0;
+
+    pFile = fopen("test.ini","r");
+    if(!pFile) {
+        perror("File opening failed");
+        return -1;
+    }
+
+    nanoini_init(&nano_prs,nanoini_handler,&cfg);
+
+    while ((c = fgetc(pFile)) != EOF)
+    {
+       data[i++] = (char)c;
+       if (i >= BLOC_LEN)
+       {
+           nanoini_parse_bloc(&nano_prs,data,(size_t)i);
+           i = 0;
+       }
+    }
+    //parse last block (that will most probably be smaller than 50 bytes
+    nanoini_parse_bloc(&nano_prs,data,(size_t)i);
+
+    printf("cfg populated with: %d,%d,%d\n",cfg.key_a,cfg.key_b,cfg.key_c);
+    return 0;
+}
+
  ```
