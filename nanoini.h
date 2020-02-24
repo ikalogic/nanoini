@@ -49,6 +49,7 @@
 #define NANOINI_H_
 
 #include "stdbool.h"
+#include <crtdefs.h>
 
 #define NANOINI_MAX_KEY_LEN 50
 #define NANOINI_MAX_VAL_LEN 50
@@ -79,11 +80,20 @@ typedef struct
 }nanoini_parser_t;
 
 typedef void (*ini_handler)(void* user,const char* key, const char* value, bool ovf);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief nanoini_init need to be called before using the library
  * @param p
  */
 void nanoini_init(nanoini_parser_t *p, ini_handler handler, void *user_data);
 void nanoini_parse_bloc(nanoini_parser_t *p,char* data, size_t len);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* NANOINI_H_ */
