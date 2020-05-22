@@ -58,8 +58,8 @@
 
 typedef struct
 {
-    char key[NANOINI_MAX_KEY_LEN];
-    char val[NANOINI_MAX_VAL_LEN];
+    char key[NANOINI_MAX_KEY_LEN+1];
+    char val[NANOINI_MAX_VAL_LEN+1];
     int idx; //Index for both key and val
     bool key_val_overflow;
 }nanoini_result_t;
